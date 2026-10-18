@@ -1,7 +1,7 @@
 import { Queue, Worker } from "bullmq";
 import IORedis from "ioredis";
 import { unavailable } from "@/lib/domain/providers";
-import { loadTokenFromProviders } from "@/lib/server/provider-adapters";
+import { fetchDexScreenerLatestProfiles, loadTokenFromProviders } from "@/lib/server/provider-adapters";
 
 const redisUrl = process.env.REDIS_URL;
 const queueName = "grok-sniper";
@@ -14,9 +14,14 @@ async function start() {
   const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null, lazyConnect: true });
   await connection.connect();
   const queue = new Queue(queueName, { connection });
-  await queue.add("discovery.scan", { reason: "worker_boot" }, { jobId: "boot-scan", removeOnComplete: 100, removeOnFail: 100 });
+  await queue.add("discovery.latest_profiles", { reason: "worker_boot", limit: 90 }, { jobId: "boot-latest-profiles", removeOnComplete: 100, removeOnFail: 100 });
   const worker = new Worker(queueName, async (job) => {
     const mint = typeof job.data?.mint === "string" ? job.data.mint : undefined;
+    if (job.name === "discovery.latest_profiles") {
+      const profiles = await fetchDexScreenerLatestProfiles(Number(job.data?.limit ?? 90));
+      console.log(JSON.stringify({ event: "job_processed", jobId: job.id, name: job.name, providerState: profiles.state, detail: profiles.detail, profileCount: profiles.value?.length ?? 0 }));
+      return profiles;
+    }
     if (mint) {
       const token = await loadTokenFromProviders(mint);
       console.log(JSON.stringify({ event: "job_processed", jobId: job.id, name: job.name, providerState: token.dataState, mint: token.mint, eligibility: token.eligibility }));
