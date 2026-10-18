@@ -1,5 +1,7 @@
 # Grok Sniper TODO
 
+> **Current evidence (verified):** The responsive shell, paper-mode dashboard, deterministic risk engine, structured agent contracts, provider adapters, guarded order/emergency-stop APIs, worker entry point, Supabase migration/RLS scaffolding, CI, route manifest, and deployment docs are implemented. TypeScript, lint, 17 automated tests, migration checks, production build, mobile/desktop preview, and the production dependency audit pass. Items below remain open when they require configured Supabase/Redis/provider credentials, verified program backfills, holder-risk data, or a separately reviewed signer.
+
 ## 1. Responsive application shell and truthful dashboard
 
 - [ ] Build a polished dark trading-terminal interface that works on iPhone, Android, tablets, and desktop browsers.
