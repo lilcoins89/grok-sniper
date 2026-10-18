@@ -17,6 +17,13 @@ export const PAPER_RISK_PROFILE: RiskProfile = {
   emergencyStop: true,
 };
 
+export function activePaperRiskProfile(): RiskProfile {
+  return {
+    ...PAPER_RISK_PROFILE,
+    requireFreshData: process.env.PAPER_SIMULATION_ENABLED === "true" ? false : PAPER_RISK_PROFILE.requireFreshData,
+  };
+}
+
 export type RiskInput = {
   requestedSol: number;
   currentExposureSol: number;

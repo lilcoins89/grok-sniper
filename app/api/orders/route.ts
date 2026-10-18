@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   const input = parsed.data;
   const duplicate = runtimeSnapshot.orders.some((order) => order.idempotencyKey === input.idempotencyKey);
   const token = await findToken(input.mint);
-  const decision = evaluateRisk({ requestedSol: input.requestedSol, currentExposureSol: runtimeSnapshot.paper.openExposureSol, openPositions: runtimeSnapshot.paper.positions, dailyRealizedLossSol: Math.max(0, -runtimeSnapshot.paper.realizedPnlSol), expectedSlippagePct: 1, expectedPriceImpactPct: 0, token, idempotencyKeySeen: duplicate });
+  const decision = evaluateRisk({ requestedSol: input.requestedSol, currentExposureSol: runtimeSnapshot.paper.openExposureSol, openPositions: runtimeSnapshot.paper.positions, dailyRealizedLossSol: Math.max(0, -runtimeSnapshot.paper.realizedPnlSol), expectedSlippagePct: 1, expectedPriceImpactPct: 0, token, idempotencyKeySeen: duplicate, profile: runtimeSnapshot.risk });
   if (!decision.allowed) {
     runtimeSnapshot.counts.rejected += 1;
     addAuditEvent({ category: "RISK", action: "ORDER_REJECTED", outcome: "BLOCKED", detail: decision.reasons.join(", ") });
