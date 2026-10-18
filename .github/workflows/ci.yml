@@ -6,6 +6,7 @@ name: Grok Sniper CI
       - main
       - 'feature/**'
   pull_request: {}
+  workflow_dispatch: {}
 
 permissions:
   contents: read
