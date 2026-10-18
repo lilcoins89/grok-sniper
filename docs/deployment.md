@@ -6,9 +6,13 @@ Deploy the Next.js app to Vercel with the variables in `.env.example` configured
 
 The repository adapter persists token snapshots and paper orders to Supabase when `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are present. If they are absent, the app remains explicitly non-durable for local development and labels provider/ledger gaps rather than claiming persistence. State-changing routes require the server-only `OPERATOR_API_KEY` header in production; add Supabase Auth/session middleware before exposing the operator console publicly.
 
+The browser deployment is PWA-first. It may connect to a wallet provider to read a public address, but it must not receive `SUPABASE_SERVICE_ROLE_KEY`, `HELIUS_API_KEY`, `REDIS_URL`, `OPERATOR_API_KEY`, signer credentials, or raw private keys. The `/api/swaps/prepare` route creates an unsigned, expiring intent only; wallet-side approval and signing are future live-mode work and remain locked.
+
 ## Worker
 
 Run `npm ci && npm run worker` on a persistent worker host with `REDIS_URL`, the provider variables, and a separate server-only environment. The worker uses BullMQ when Redis is configured. Without Redis or verified provider credentials it reports degraded/unavailable state and does not invent scans or fills. For a managed reserved process, keep the worker and web API in separate processes or deploy the worker on a dedicated persistent host. Redis is durable infrastructure, not an in-memory fallback.
+
+The worker is responsible for discovery scans, structured agent jobs, position marks, and transaction observations. It should publish heartbeat state to Supabase or a health table so the PWA can display `HEALTHY`, `DEGRADED`, or `OFFLINE` without inferring status from a browser request.
 
 ## Safety launch checklist
 

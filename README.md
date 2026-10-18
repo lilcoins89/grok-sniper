@@ -26,6 +26,12 @@ State-changing routes (`POST /api/orders` and `POST /api/emergency-stop`) requir
 
 Set `REDIS_URL` in a server-only environment and run `npm run worker`. The worker processes BullMQ jobs with concurrency one, logs structured state, and uses the provider adapter path for jobs that include a mint. Without Redis or a verified event-stream provider it stays degraded and does not invent discovery events.
 
+## Target architecture
+
+The delivered surface is a PWA-first dashboard: it can be installed on a phone, connects to a wallet for public identity only, and exposes operator controls for live positions, P&L, token scans, agent status, audit logs, emergency stop, and paper trading. The cloud side is split into the Next.js API/server, Supabase/PostgreSQL persistence, Redis/BullMQ queues, and a persistent worker. Helius/RPC/WebSocket adapters remain server-only and fail closed when credentials or freshness checks are missing. Guarded swap preparation returns an unsigned intent; it never signs or broadcasts.
+
+`components/wallet-connect.tsx` intentionally requests only the wallet public key. `lib/server/signing.ts` is the signing boundary: it rejects non-paper orders, requires fresh eligible evidence, and reports that live execution is disabled. `lib/server/monitoring.ts` models transaction confirmation as explicit `UNKNOWN` until an RPC commitment/retry policy is configured. No private key or seed phrase is accepted anywhere in the app.
+
 ## Data and deployment
 
 Apply `database/migrations/001_initial.sql` in Supabase, keep RLS enabled, and use server-only environment variables from `.env.example`. Deploy the web app to Vercel and run the worker on a persistent host with durable Redis. See [docs/deployment.md](docs/deployment.md) for the launch checklist and rollback procedure.
